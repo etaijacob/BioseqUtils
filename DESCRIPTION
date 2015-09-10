@@ -1,0 +1,12 @@
+Package: BioseqUtils
+Type: Package
+Title: Various methods for biological sequence analysis
+Version: 0.1
+Date: 2015-09-06
+Author: Etai Jacob
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+LazyData: TRUE
+Imports:
+  seqinr
