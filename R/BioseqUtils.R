@@ -1,5 +1,33 @@
 #BioseqUtils.R
 
+clusterMSABySVD <- function(inputfile, energy.th = 0.7, maxNumOfClusters=12, write2file=F) {
+  S <- return_alignment_as_matrix(inputfile = inputfile, letter_type = "asstring")
+  M <- return_alignment_as_matrix(inputfile = inputfile, letter_type = "binary")
+
+  mysvd = svd(scale(M, center = TRUE, scale = F))
+  energy <- sapply(1:length(mysvd$d), function(x) sum(mysvd$d[1:x]^2)/sum(mysvd$d[1:length(mysvd$d)]^2))
+  nu = max(which(energy <= energy.th))
+  cat(sprintf("Taking the first %d components out of %d.\n", nu, length(energy)))
+  u <- mysvd$u[,1:nu]
+  rownames(u) <- rownames(M)
+
+  dists <- dist(u)*dim(M)[1]
+
+  fit <- hclust(dists, method="ward.D")
+
+
+  df <- data.frame(ID = rownames(M), stringsAsFactors = F)
+  for(k in 2:maxNumOfClusters) {
+    groups <- cutree(fit, k=k)
+    df[, sprintf("groups.%d", k)] <- groups[df$ID]
+  }
+  df <- cbind(df, sequence = S[df$ID], stringsAsFactors = F)
+  if(write2file)
+    write.table(df, file=sprintf("%s.clusters.e0.7.csv", inputfile), row.names = F, sep=",")
+
+  return(df)
+}
+
 return_alignment_as_matrix <- function(inputfile="Y://DCA/fass/results_latest/LAMB1_MOUSE_1183-1784.numIter3.hmrv.psiout.txt.minimalCov0.35.fa.aa_msa",
                                        letter_type = c("letter", "number", "binary", "asstring")) {
   letter_type <- match.arg(letter_type)
@@ -51,32 +79,7 @@ read.stockholm.alignment <- function(file="Y://PFAM2/data/sth/seed/PF00013_v27_s
   return(mm)
 }
 
-clusterMSABySVD <- function(inputfile, energy.th = 0.7, maxNumOfClusters=12) {
-  S <- return_alignment_as_matrix(inputfile = inputfile, letter_type = "asstring")
-  M <- return_alignment_as_matrix(inputfile = inputfile, letter_type = "binary")
 
-  mysvd = svd(scale(M, center = TRUE, scale = F))
-  energy <- sapply(1:length(mysvd$d), function(x) sum(mysvd$d[1:x]^2)/sum(mysvd$d[1:length(mysvd$d)]^2))
-  nu = max(which(energy <= energy.th))
-  cat(sprintf("Taking the first %d components out of %d.\n", nu, length(energy)))
-  u <- mysvd$u[,1:nu]
-  rownames(u) <- rownames(M)
-
-  dists <- dist(u)*dim(M)[1]
-
-  fit <- hclust(dists, method="ward.D")
-
-
-  df <- data.frame(ID = rownames(M), stringsAsFactors = F)
-  for(k in 2:maxNumOfClusters) {
-    groups <- cutree(fit, k=k)
-    df[, sprintf("groups.%d", k)] <- groups[df$ID]
-  }
-  df <- cbind(df, sequence = S[df$ID], stringsAsFactors = F)
-  write.table(df, file=sprintf("%s.clusters.e0.7.csv", inputfile), row.names = F, sep=",")
-
-  return(df)
-}
 
 aa_msa_to_binary_matrix <- function(pmat) {
   tt <- lapply(1:dim(pmat)[1], function(x) aa_seq_to_binary_vec(pmat[x,]))
