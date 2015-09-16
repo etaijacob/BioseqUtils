@@ -52,7 +52,7 @@ return_alignment_as_matrix <- function(inputfile,
 
 }
 
-return_alignment <- function(inputfile="Y://DCA/fass/results_latest/LAMB1_MOUSE_1183-1784.numIter3.hmrv.psiout.txt.minimalCov0.35.fa.aa_msa",
+return_alignment <- function(inputfile,
                              nuc = F, fileType = "fasta", doUnique=F) {
 
   if(fileType == "fasta") {
@@ -72,7 +72,7 @@ return_alignment <- function(inputfile="Y://DCA/fass/results_latest/LAMB1_MOUSE_
 #reads a stockholm file format
 # only lines which do not start with a # are considered
 # returns a dataframe with name and seq
-read.stockholm.alignment <- function(file="Y://PFAM2/data/sth/seed/PF00013_v27_seed.sth") {
+read.stockholm.alignment <- function(file) {
   mm <- readLines(file)
   mm <- do.call(rbind, strsplit(mm[-grep("^#", mm)], "\\s+", perl = T))
   mm <- data.frame(name=mm[,1], seq=mm[,2], row.names = mm[,1], stringsAsFactors = F)
