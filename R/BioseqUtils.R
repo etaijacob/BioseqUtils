@@ -23,12 +23,12 @@ clusterMSABySVD <- function(inputfile, energy.th = 0.7, maxNumOfClusters=12, wri
   }
   df <- cbind(df, sequence = S[df$ID], stringsAsFactors = F)
   if(write2file)
-    write.table(df, file=sprintf("%s.clusters.e0.7.csv", inputfile), row.names = F, sep=",")
+    write.table(df, file=sprintf("%s.clusters.e%f.csv", inputfile, energy.th), row.names = F, sep=",")
 
   return(df)
 }
 
-return_alignment_as_matrix <- function(inputfile="Y://DCA/fass/results_latest/LAMB1_MOUSE_1183-1784.numIter3.hmrv.psiout.txt.minimalCov0.35.fa.aa_msa",
+return_alignment_as_matrix <- function(inputfile,
                                        letter_type = c("letter", "number", "binary", "asstring")) {
   letter_type <- match.arg(letter_type)
   msa <- return_alignment(inputfile = inputfile)
