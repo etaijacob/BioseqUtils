@@ -28,6 +28,37 @@ clusterMSABySVD <- function(inputfile, energy.th = 0.7, maxNumOfClusters=12, wri
   return(df)
 }
 
+#maualFilterFile first line is a header. This header is ignored. First column is seq name and second is zero or one.
+filter_MSA <- function(inputMSAfile, inputMSAfileCommentSep = "|",
+                       manualFilterFile = NA,
+                       filteringMethod = c("removeDuplicates", "manualFilterFile"),
+                       fileType = "fasta") {
+  if(filteringMethod == "removeDuplicates")
+    return(return_alignment(inputfile = inputMSAfile, doUnique = T, fileType = fileType))
+  if(filteringMethod == "manualFilterFile" & !is.na(manualFilterFile)) {
+    flt <- read.table(file = manualFilterFile, sep = "\t", stringsAsFactors = F, header = T)
+    msa <- return_alignment(inputfile = inputMSAfile, fileType = fileType)
+    if(!is.na(inputMSAfileCommentSep)) {
+      mynames <- as.vector(sapply(msa$nam,
+                                  function(s) gsub(sprintf("^\\s+%s\\s+$", inputMSAfileCommentSep), "",
+                                                   strsplit(x = s, sprintf("\\%s", inputMSAfileCommentSep))[[1]][1])))
+      msa$nam <- mynames
+    }
+    inidxs <- which((msa$nam %in%  flt[flt[,2] == 1, 1]))
+    msa$nb  <- length(msa$nb[inidxs])
+    msa$nam <- msa$nam[inidxs]
+    msa$seq <- msa$seq[inidxs]
+    msa$com <- msa$com[inidxs]
+
+    return(msa)
+  }
+}
+
+write2Fasta <- function(msa, foutname) {
+  write.fasta(sequences = strsplit(msa$seq, split = ""), names = msa$nam, file.out = foutname)
+
+}
+
 return_alignment_as_matrix <- function(inputfile,
                                        letter_type = c("letter", "number", "binary", "asstring")) {
   letter_type <- match.arg(letter_type)
@@ -60,7 +91,7 @@ return_alignment <- function(inputfile,
     cat(sprintf("Original MSA length is: %d.\n", length(msa$seq)))
     if(doUnique) {
       inidxs <- which(!duplicated(msa$seq))
-      msa$nb  <- msa$nb[inidxs]
+      msa$nb  <- length(msa$nb[inidxs])
       msa$nam <- msa$nam[inidxs]
       msa$seq <- msa$seq[inidxs]
       msa$com <- msa$com[inidxs]
