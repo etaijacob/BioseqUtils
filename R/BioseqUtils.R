@@ -1,4 +1,5 @@
 #BioseqUtils.R
+#Copyright (C) 2015 Etai Jacob, etai.jacob@gmail.com
 
 clusterMSABySVD <- function(inputfile, energy.th = 0.7, maxNumOfClusters=12, write2file=F) {
   S <- return_alignment_as_matrix(inputfile = inputfile, letter_type = "asstring")
